@@ -93,7 +93,7 @@ int main() {
 
     /* Initialization */
     int lane = 1;
-    double speed = 22.352; // 50 MPH = 22.352 m/s
+    double speed = 22; // 50 MPH = 22.352 m/s
     double dt = 0.02;
     double path_length = 50; // 50 metres
     double ds = speed * dt; // Assuming constant velocity
