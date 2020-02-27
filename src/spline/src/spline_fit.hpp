@@ -6,7 +6,6 @@
 
 #include "spline.hpp"
 
-int testFunction();
 
 /* Fit spline based on s */
 std::tuple<tk::spline, tk::spline> fitSpline(

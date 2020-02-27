@@ -113,7 +113,6 @@ int main() {
 
           /* Fit spline to points */
           tk::spline spline_x, spline_y;
-          int t = testFunction();
           std::tie(spline_x, spline_y) = fitSpline(car_s, car_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, path_length);
 
           /* Sample from spline */
