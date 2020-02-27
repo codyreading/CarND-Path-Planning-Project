@@ -2,71 +2,36 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <tuple>
 #include <vector>
-#include "Eigen-3.3/Eigen/Core"
-#include "Eigen-3.3/Eigen/QR"
-#include "helpers.h"
-#include "json.hpp"
-#include "spline.h"
 
-// for convenience
-using nlohmann::json;
-using std::string;
-using std::vector;
-using std::tuple;
+#include "third-party/Eigen-3.3/Eigen/Core"
+#include "third-party/Eigen-3.3/Eigen/QR"
+#include "third-party/json.hpp"
+#include "third-party/spline/src/spline.h"
 
-/* Fit spline based on s */
-tuple<tk::spline, tk::spline> fitSpline(
-    const double car_s, const double car_d,
-    const vector<double> &map_waypoints_s,
-    const vector<double> &map_waypoints_x,
-    const vector<double> &map_waypoints_y,
-    const float spline_length)
-{
-    /* Set Spline parameters */
-    int num_spline_pts = 50;
-    float interval = spline_length / num_spline_pts;
-    std::vector<double> spline_s, spline_x_pts, spline_y_pts;
+#include "spline-fit/spline_fit.hpp"
+#include "utils.h"
 
-    /* Add points to fit spline to */
-    for (int i = 0; i < num_spline_pts; ++i)
-    {
-        double s = car_s + i * interval;
-        double d = car_d;
-        vector<double> point = getXY(s, d, map_waypoints_s, map_waypoints_x, map_waypoints_y);
-        spline_s.push_back(s);
-        spline_x_pts.push_back(point[0]);
-        spline_y_pts.push_back(point[1]);
-    }
-
-    tk::spline spline_x, spline_y;
-    spline_x.set_points(spline_s, spline_x_pts);
-    spline_y.set_points(spline_s, spline_y_pts);
-    return std::make_tuple(spline_x, spline_y);
-}
 
 int main() {
   uWS::Hub h;
 
   // Load up map values for waypoint's x,y,s and d normalized normal vectors
-  vector<double> map_waypoints_x;
-  vector<double> map_waypoints_y;
-  vector<double> map_waypoints_s;
-  vector<double> map_waypoints_dx;
-  vector<double> map_waypoints_dy;
+  std::vector<double> map_waypoints_x;
+  std::vector<double> map_waypoints_y;
+  std::vector<double> map_waypoints_s;
+  std::vector<double> map_waypoints_dx;
+  std::vector<double> map_waypoints_dy;
 
   // Waypoint map to read from
-  string map_file_ = "../data/highway_map.csv";
+  std::string map_file_ = "../data/highway_map.csv";
   // The max s value before wrapping around the track back to 0
   double max_s = 6945.554;
 
 
-
-
   std::ifstream in_map_(map_file_.c_str(), std::ifstream::in);
 
-  string line;
+  std::string line;
   while (getline(in_map_, line)) {
     std::istringstream iss(line);
     double x;
@@ -86,10 +51,10 @@ int main() {
     map_waypoints_dy.push_back(d_y);
   }
 
-  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
-               &map_waypoints_dx,&map_waypoints_dy]
+  h.onMessage([&map_waypoints_x, &map_waypoints_y, &map_waypoints_s,
+               &map_waypoints_dx, &map_waypoints_dy]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
-               uWS::OpCode opCode) {
+  uWS::OpCode opCode) {
 
     /* Initialization */
     int lane = 1;
@@ -109,12 +74,12 @@ int main() {
       auto s = hasData(data);
 
       if (s != "") {
-        auto j = json::parse(s);
+        auto j = nlohmann::json::parse(s);
 
-        string event = j[0].get<string>();
+        std::string event = j[0].get<std::string>();
 
         if (event == "telemetry") {
-          // j[1] is the data JSON object
+          // j[1] is the data nlohmann::json object
 
           // Main car's localization Data
           double car_x = j[1]["x"];
@@ -135,10 +100,10 @@ int main() {
           //   of the road.
           auto sensor_fusion = j[1]["sensor_fusion"];
 
-          json msgJson;
+          nlohmann::json msgJson;
 
-          vector<double> next_x_vals;
-          vector<double> next_y_vals;
+          std::vector<double> next_x_vals;
+          std::vector<double> next_y_vals;
 
           /**
            * TODO: define a path made up of (x,y) points that the car will visit
@@ -153,15 +118,15 @@ int main() {
           /* Sample from spline */
           for (int i = 0; i < num_path_points; ++i)
           {
-              double path_s = car_s + i*ds;
-              next_x_vals.push_back(spline_x(path_s));
-              next_y_vals.push_back(spline_y(path_s));
+            double path_s = car_s + i * ds;
+            next_x_vals.push_back(spline_x(path_s));
+            next_y_vals.push_back(spline_y(path_s));
           }
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
-          auto msg = "42[\"control\","+ msgJson.dump()+"]";
+          auto msg = "42[\"control\"," + msgJson.dump() + "]";
 
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
         }  // end "telemetry" if
@@ -178,7 +143,7 @@ int main() {
   });
 
   h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code,
-                         char *message, size_t length) {
+  char *message, size_t length) {
     ws.close();
     std::cout << "Disconnected" << std::endl;
   });
