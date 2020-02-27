@@ -7,11 +7,6 @@ add_definitions(-std=c++11)
 set(CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
-set(SOURCES
-    src/main.cpp
-    src/utils.h
-)
-
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     include_directories(/usr/local/include)
@@ -21,11 +16,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     link_directories(/usr/local/Cellar/libuv/1.11.0/lib)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-
-# Add library
-add_library(spline_fit
-    src/spline-fit/spline_fit.cpp
-    src/spline-fit/spline_fit.hpp
+set(SOURCES
+    src/main.cpp
 )
 
 # Add excutable
@@ -37,13 +29,12 @@ set(LIBRARIES
     ssl
     uv
     uWS
-    spline_fit
+    utils
+    spline
 )
 
 target_link_libraries(path_planning ${LIBRARIES})
 
-# Add include directories
-target_include_directories(path_planning PUBLIC
-                          "${PROJECT_BINARY_DIR}"
-                          "${PROJECT_SOURCE_DIR}/spline-fit"
-                          "${PROJECT_SOURCE_DIR}/third-party/spline/src")
+# Add libraries
+add_subdirectory(src/utils)
+add_subdirectory(src/spline)

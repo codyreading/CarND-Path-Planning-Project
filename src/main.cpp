@@ -4,13 +4,14 @@
 #include <string>
 #include <vector>
 
-#include "third-party/Eigen-3.3/Eigen/Core"
-#include "third-party/Eigen-3.3/Eigen/QR"
-#include "third-party/json.hpp"
-#include "third-party/spline/src/spline.h"
+// #include "third-party/Eigen-3.3/Eigen/Core"
+// #include "third-party/Eigen-3.3/Eigen/QR"
+#include "json.hpp"
 
-#include "spline-fit/spline_fit.hpp"
-#include "utils.h"
+#include "utils.hpp"
+#include "spline.hpp"
+#include "spline_fit.hpp"
+
 
 
 int main() {
@@ -112,7 +113,7 @@ int main() {
 
           /* Fit spline to points */
           tk::spline spline_x, spline_y;
-
+          int t = testFunction();
           std::tie(spline_x, spline_y) = fitSpline(car_s, car_d, map_waypoints_s, map_waypoints_x, map_waypoints_y, path_length);
 
           /* Sample from spline */
