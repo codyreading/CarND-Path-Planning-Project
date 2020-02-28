@@ -20,6 +20,12 @@ set(SOURCES
     src/main.cpp
 )
 
+# Add libraries
+add_subdirectory(src/utils)
+add_subdirectory(src/spline)
+add_subdirectory(src/types)
+add_subdirectory(src/planner)
+
 # Add excutable
 add_executable(path_planning ${SOURCES})
 
@@ -31,10 +37,9 @@ set(LIBRARIES
     uWS
     utils
     spline
+    types
+    planner
 )
 
 target_link_libraries(path_planning ${LIBRARIES})
 
-# Add libraries
-add_subdirectory(src/utils)
-add_subdirectory(src/spline)
