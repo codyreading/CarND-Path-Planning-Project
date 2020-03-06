@@ -1,13 +1,12 @@
-set (NAME utils)
+set (NAME json)
 
 add_library(${NAME}
-    src/utils.hpp
-    src/utils.cpp
+    src/json.hpp
+    src/json.cpp
 )
 
 # Link libraries
 set(LIBRARIES
-    types
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})

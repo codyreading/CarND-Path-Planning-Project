@@ -87,17 +87,13 @@ int main() {
           cur_state.speed = j[1]["speed"];
 
           // Previous path data given to the Planner
-          Path prev_path;
-          // prev_path.x = j[1]["previous_path_x"];
-          // prev_path.y = j[1]["previous_path_y"];
+          Path prev_path = json_to_path(j[1]["previous_path_x"], j[1]["previous_path_y"]);
 
           // Previous path's end s and d values
-          FrenetPoint prev_point;
-          // prev_point.s = j[1]["end_path_s"];
-          // prev_point.d = j[1]["end_path_d"];
+          FrenetPoint prev_point = json_to_point(j[1]["end_path_s"], j[1]["end_path_d"]);
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
-          auto sur_vehicles = j[1]["sensor_fusion"];
+          std::vector<std::vector<double>> sur_vehicles = j[1]["sensor_fusion"];
 
           Path plan_path = planner.planPath(cur_state, prev_path, prev_point, sur_vehicles);
 

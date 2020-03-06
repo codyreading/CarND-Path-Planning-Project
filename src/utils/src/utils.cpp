@@ -2,6 +2,8 @@
 #include <string>
 #include <vector>
 
+#include "utils.hpp"
+
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in std::string format will be returned,
@@ -148,3 +150,21 @@ std::vector<double> getXY(double s, double d, const std::vector<double> &maps_s,
   return {x, y};
 }
 
+Path json_to_path(nlohmann::basic_json<> x, nlohmann::basic_json<> y)
+{
+  Path path;
+  for (int i = 0; i < x.size(); ++i)
+  {
+    path.x.push_back(x[i]);
+    path.y.push_back(y[i]);
+  }
+  return path;
+}
+
+FrenetPoint json_to_point(nlohmann::basic_json<> s, nlohmann::basic_json<> d)
+{
+  FrenetPoint point;
+  point.s = s;
+  point.d = d;
+  return point;
+}

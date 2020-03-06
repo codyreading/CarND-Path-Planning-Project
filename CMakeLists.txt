@@ -25,6 +25,7 @@ add_subdirectory(src/utils)
 add_subdirectory(src/spline)
 add_subdirectory(src/types)
 add_subdirectory(src/planner)
+add_subdirectory(src/json)
 
 # Add excutable
 add_executable(path_planning ${SOURCES})
@@ -39,6 +40,7 @@ set(LIBRARIES
     spline
     types
     planner
+    json
 )
 
 target_link_libraries(path_planning ${LIBRARIES})

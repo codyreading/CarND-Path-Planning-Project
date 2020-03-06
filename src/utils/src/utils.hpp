@@ -5,6 +5,10 @@
 #include <string>
 #include <vector>
 
+#include "path.hpp"
+#include "frenet_point.hpp"
+#include "json.hpp"
+
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in std::string format will be returned,
@@ -42,5 +46,9 @@ std::vector<double> getFrenet(double x, double y, double theta,
 std::vector<double> getXY(double s, double d, const std::vector<double> &maps_s,
                           const std::vector<double> &maps_x,
                           const std::vector<double> &maps_y);
+
+/* Type conversions */
+Path json_to_path(nlohmann::basic_json<> x, nlohmann::basic_json<> y);
+FrenetPoint json_to_point(nlohmann::basic_json<> s, nlohmann::basic_json<> d);
 
 #endif  // UTILS_H
