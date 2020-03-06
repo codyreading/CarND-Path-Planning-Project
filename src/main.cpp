@@ -84,7 +84,7 @@ int main() {
           cur_state.speed = j[1]["speed"];
 
           // Previous path data given to the Planner
-          Path prev_path = json_to_path(j[1]["previous_path_x"], j[1]["previous_path_y"]);
+          Path prev_path = Path(j[1]["previous_path_x"], j[1]["previous_path_y"]);
 
           // Previous path's end s and d values
           FrenetPoint prev_point = json_to_point(j[1]["end_path_s"], j[1]["end_path_d"]);
@@ -96,8 +96,8 @@ int main() {
           Path plan_path = planner.planPath(cur_state, prev_path, prev_point, sur_vehicles);
 
           nlohmann::json msgJson;
-          msgJson["next_x"] = plan_path.x;
-          msgJson["next_y"] = plan_path.y;
+          msgJson["next_x"] = plan_path.m_x;
+          msgJson["next_y"] = plan_path.m_y;
 
           auto msg = "42[\"control\"," + msgJson.dump() + "]";
 

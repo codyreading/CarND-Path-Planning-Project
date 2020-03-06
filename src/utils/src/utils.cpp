@@ -94,17 +94,6 @@ double KmPerHourToMetersPerSecond(double kmh)
 }
 
 
-Path json_to_path(nlohmann::basic_json<> x, nlohmann::basic_json<> y)
-{
-  Path path;
-  for (int i = 0; i < x.size(); ++i)
-  {
-    path.x.push_back(x[i]);
-    path.y.push_back(y[i]);
-  }
-  return path;
-}
-
 FrenetPoint json_to_point(nlohmann::basic_json<> s, nlohmann::basic_json<> d)
 {
   FrenetPoint point;

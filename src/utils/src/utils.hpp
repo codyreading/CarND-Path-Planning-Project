@@ -89,7 +89,6 @@ double distance(double x1, double y1, double x2, double y2);
 
 
 /* Type conversions */
-Path json_to_path(nlohmann::basic_json<> x, nlohmann::basic_json<> y);
 FrenetPoint json_to_point(nlohmann::basic_json<> s, nlohmann::basic_json<> d);
 std::vector<Vehicle> sensor_fusion_to_vehicles(const std::vector<std::vector<double>>& sensor_fusion);
 
