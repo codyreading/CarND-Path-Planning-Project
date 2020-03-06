@@ -20,7 +20,7 @@ private:
     double m_path_time;
     int m_num_path_points;
 
-    void predictVehicles(const std::vector<Vehicle>& vehicles);
+    std::vector<Vehicle> predictVehicles(const std::vector<Vehicle>& vehicles);
     void planBehavior(bool car_ahead, bool car_left, bool car_right);
     Path generateTrajectory(const State& cur_state);
 

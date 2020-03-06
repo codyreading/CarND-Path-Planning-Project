@@ -33,7 +33,7 @@ Path Planner::planPath(const State& cur_state,
 
     /* Prediction */
 
-    predictVehicles(vehicles);
+    std::vector<Vehicle> predict_vehicles = predictVehicles(vehicles);
 
     // /* Behavior Planning */
     // //planBehavior(car_ahead, car_left, car_right)
@@ -58,9 +58,14 @@ Path Planner::planPath(const State& cur_state,
     return plan_path;
 }
 
-void Planner::predictVehicles(const std::vector<Vehicle>& vehicles)
+std::vector<Vehicle> Planner::predictVehicles(const std::vector<Vehicle>& vehicles)
 {
-
+    std::vector<Vehicle> predict_vehicles;
+    for (auto vehicle : vehicles)
+    {
+        predict_vehicles.push_back(vehicle.predictFuturePosition(m_dt));
+    }
+    return predict_vehicles;
 }
 
 
