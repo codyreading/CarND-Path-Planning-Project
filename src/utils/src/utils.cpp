@@ -30,125 +30,69 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
+/**
+ *
+ * @returns the angle theta in radians, based on the supplied velocity components
+ */
+double getTheta(double vx, double vy)
+{
+  return atan2(vy, vx);
+}
+
+
 // Calculate distance between two points
 double distance(double x1, double y1, double x2, double y2) {
   return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 }
 
-// Calculate closest waypoint to current x, y position
-int ClosestWaypoint(double x, double y, const std::vector<double> &maps_x,
-                    const std::vector<double> &maps_y) {
-  double closestLen = 100000; //large number
-  int closestWaypoint = 0;
-
-  for (int i = 0; i < maps_x.size(); ++i) {
-    double map_x = maps_x[i];
-    double map_y = maps_y[i];
-    double dist = distance(x, y, map_x, map_y);
-    if (dist < closestLen) {
-      closestLen = dist;
-      closestWaypoint = i;
-    }
+/*
+ *
+ * @returns the calculated lane index
+ */
+int calculateLane(double d, double lane_spacing, double lane_inside_offset)
+{
+  double calibrated_d = d - lane_inside_offset;
+  if (calibrated_d < 0.0)
+  {
+    return -1;
   }
-
-  return closestWaypoint;
+  return (int)floor(calibrated_d / lane_spacing);
 }
 
-// Returns next waypoint of the closest waypoint
-int NextWaypoint(double x, double y, double theta, const std::vector<double> &maps_x,
-                 const std::vector<double> &maps_y) {
-  int closestWaypoint = ClosestWaypoint(x, y, maps_x, maps_y);
-
-  double map_x = maps_x[closestWaypoint];
-  double map_y = maps_y[closestWaypoint];
-
-  double heading = atan2((map_y - y), (map_x - x));
-
-  double angle = fabs(theta - heading);
-  angle = std::min(2 * pi() - angle, angle);
-
-  if (angle > pi() / 2) {
-    ++closestWaypoint;
-    if (closestWaypoint == maps_x.size()) {
-      closestWaypoint = 0;
-    }
+bool isWithinLane(double d, double lane_spacing, double lane_inside_offset)
+{
+  double calibrated_d = d - lane_inside_offset;
+  if (calibrated_d < 0.0)
+  {
+    return false;
   }
 
-  return closestWaypoint;
+  int target_lane = (int)floor(d / lane_spacing);
+  int calibrated_lane = (int)floor(calibrated_d / lane_spacing);
+  return target_lane == calibrated_lane;
 }
 
-// Transform from Cartesian x,y coordinates to Frenet s,d coordinates
-std::vector<double> getFrenet(double x, double y, double theta,
-                              const std::vector<double> &maps_x,
-                              const std::vector<double> &maps_y) {
-  int next_wp = NextWaypoint(x, y, theta, maps_x, maps_y);
-
-  int prev_wp;
-  prev_wp = next_wp - 1;
-  if (next_wp == 0) {
-    prev_wp  = maps_x.size() - 1;
-  }
-
-  double n_x = maps_x[next_wp] - maps_x[prev_wp];
-  double n_y = maps_y[next_wp] - maps_y[prev_wp];
-  double x_x = x - maps_x[prev_wp];
-  double x_y = y - maps_y[prev_wp];
-
-  // find the projection of x onto n
-  double proj_norm = (x_x * n_x + x_y * n_y) / (n_x * n_x + n_y * n_y);
-  double proj_x = proj_norm * n_x;
-  double proj_y = proj_norm * n_y;
-
-  double frenet_d = distance(x_x, x_y, proj_x, proj_y);
-
-  //see if d value is positive or negative by comparing it to a center point
-  double center_x = 1000 - maps_x[prev_wp];
-  double center_y = 2000 - maps_y[prev_wp];
-  double centerToPos = distance(center_x, center_y, x_x, x_y);
-  double centerToRef = distance(center_x, center_y, proj_x, proj_y);
-
-  if (centerToPos <= centerToRef) {
-    frenet_d *= -1;
-  }
-
-  // calculate s value
-  double frenet_s = 0;
-  for (int i = 0; i < prev_wp; ++i) {
-    frenet_s += distance(maps_x[i], maps_y[i], maps_x[i + 1], maps_y[i + 1]);
-  }
-
-  frenet_s += distance(0, 0, proj_x, proj_y);
-
-  return {frenet_s, frenet_d};
+bool isLaneValid(int lane)
+{
+  return lane >= 0 && lane < LANES_COUNT;
 }
 
-// Transform from Frenet s,d coordinates to Cartesian x,y
-std::vector<double> getXY(double s, double d, const std::vector<double> &maps_s,
-                          const std::vector<double> &maps_x,
-                          const std::vector<double> &maps_y) {
-  int prev_wp = -1;
-
-  while (s > maps_s[prev_wp + 1] && (prev_wp < (int)(maps_s.size() - 1))) {
-    ++prev_wp;
-  }
-
-  int wp2 = (prev_wp + 1) % maps_x.size();
-
-  double heading = atan2((maps_y[wp2] - maps_y[prev_wp]),
-                         (maps_x[wp2] - maps_x[prev_wp]));
-  // the x,y,s along the segment
-  double seg_s = (s - maps_s[prev_wp]);
-
-  double seg_x = maps_x[prev_wp] + seg_s * cos(heading);
-  double seg_y = maps_y[prev_wp] + seg_s * sin(heading);
-
-  double perp_heading = heading - pi() / 2;
-
-  double x = seg_x + d * cos(perp_heading);
-  double y = seg_y + d * sin(perp_heading);
-
-  return {x, y};
+double getLaneCenterFrenet(int lane)
+{
+  // return 2.0 + 4.0 * lane;
+  return 1.8 + 4.0 * lane;
 }
+
+double milesPerHourToKmPerHour(double mph)
+{
+  return mph * 1.609344;
+}
+
+double KmPerHourToMetersPerSecond(double kmh)
+{
+  return (kmh * 1000.0) / 3600.0;
+}
+
 
 Path json_to_path(nlohmann::basic_json<> x, nlohmann::basic_json<> y)
 {
@@ -167,4 +111,14 @@ FrenetPoint json_to_point(nlohmann::basic_json<> s, nlohmann::basic_json<> d)
   point.s = s;
   point.d = d;
   return point;
+}
+
+std::vector<Vehicle> sensor_fusion_to_vehicles(const std::vector<std::vector<double>>& sensor_fusion)
+{
+  std::vector<Vehicle> vehicles;
+  for (auto data : sensor_fusion)
+  {
+    Vehicle vehicle = Vehicle(data[0], data[1], data[2], data[3], data[4], data[5], data[6], 0.0);
+    vehicles.push_back(vehicle);
+  }
 }

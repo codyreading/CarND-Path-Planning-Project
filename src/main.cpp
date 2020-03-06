@@ -21,13 +21,12 @@ int main() {
   uWS::Hub h;
 
   // Load up map values for waypoint's x,y,s and d normalized normal vectors
-  Waypoints waypoints;
+  Waypoints &waypoints = Waypoints::getInstance();
 
   // Waypoint map to read from
   std::string map_file_ = "../data/highway_map.csv";
   // The max s value before wrapping around the track back to 0
   double max_s = 6945.554;
-
 
   std::ifstream in_map_(map_file_.c_str(), std::ifstream::in);
 
@@ -44,20 +43,18 @@ int main() {
     iss >> s;
     iss >> d_x;
     iss >> d_y;
-    waypoints.x.push_back(x);
-    waypoints.y.push_back(y);
-    waypoints.s.push_back(s);
-    waypoints.dx.push_back(d_x);
-    waypoints.dy.push_back(d_y);
+    waypoints.addWaypoint(x, y, s, d_x, d_y);
   }
+
+  waypoints.buildSplines();
 
   int lane = 1;
   double speed = 22; // 50 MPH = 22.352 m/s
   double dt = 0.02;
   double path_length = 50; // 50 metres
-  Planner planner(lane, speed, dt, path_length, waypoints);
+  Planner planner(lane, speed, dt, path_length);
 
-  h.onMessage([&waypoints, &planner]
+  h.onMessage([&planner]
               (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
   uWS::OpCode opCode) {
 
@@ -93,7 +90,8 @@ int main() {
           FrenetPoint prev_point = json_to_point(j[1]["end_path_s"], j[1]["end_path_d"]);
 
           // Sensor Fusion Data, a list of all other cars on the same side of the road.
-          std::vector<std::vector<double>> sur_vehicles = j[1]["sensor_fusion"];
+          auto sensor_fusion = j[1]["sensor_fusion"];
+          std::vector<Vehicle> sur_vehicles = sensor_fusion_to_vehicles(sensor_fusion);
 
           Path plan_path = planner.planPath(cur_state, prev_path, prev_point, sur_vehicles);
 

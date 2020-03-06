@@ -1,6 +1,4 @@
 add_library(spline
-    src/spline_fit.hpp
-    src/spline_fit.cpp
     src/spline.hpp
     src/spline.cpp
 )
