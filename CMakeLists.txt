@@ -26,6 +26,7 @@ add_subdirectory(src/spline)
 add_subdirectory(src/types)
 add_subdirectory(src/planner)
 add_subdirectory(src/json)
+add_subdirectory(src/state_machine)
 
 # Add excutable
 add_executable(path_planning ${SOURCES})
@@ -41,6 +42,7 @@ set(LIBRARIES
     types
     planner
     json
+    state_machine
 )
 
 target_link_libraries(path_planning ${LIBRARIES})

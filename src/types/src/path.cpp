@@ -8,7 +8,6 @@ Path::Path(const std::vector<double>& x, const std::vector<double>& y)
 {
     m_x = x;
     m_y = y;
-    m_size = x.size();
 }
 
 Path::Path(nlohmann::basic_json<> x, nlohmann::basic_json<> y)
@@ -18,5 +17,15 @@ Path::Path(nlohmann::basic_json<> x, nlohmann::basic_json<> y)
         m_x.push_back(x[i]);
         m_y.push_back(y[i]);
     }
-    m_size = x.size();
+}
+
+int Path::getSize()
+{
+    return m_x.size();
+}
+
+void Path::removeFirstPoints(int numPoints)
+{
+    m_x.erase(m_x.begin(), m_x.begin() + numPoints);
+    m_y.erase(m_y.begin(), m_y.begin() + numPoints);
 }

@@ -8,13 +8,10 @@
 // #include "third-party/Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 
-#include "state.hpp"
 #include "path.hpp"
 #include "frenet_point.hpp"
 #include "planner.hpp"
 #include "utils.hpp"
-
-
 
 
 int main() {
@@ -75,13 +72,8 @@ int main() {
           // j[1] is the data nlohmann::json object
 
           // Main car's localization Data
-          State cur_state;
-          cur_state.x = j[1]["x"];
-          cur_state.y = j[1]["y"];
-          cur_state.s = j[1]["s"];
-          cur_state.d = j[1]["d"];
-          cur_state.yaw = j[1]["yaw"];
-          cur_state.speed = j[1]["speed"];
+          double car_yaw_rad = deg2rad(j[1]["yaw"]);
+          Vehicle ego = Vehicle(-1, j[1]["x"], j[1]["y"], cos(car_yaw_rad), sin(car_yaw_rad), j[1]["s"], j[1]["d"], 0.0);;
 
           // Previous path data given to the Planner
           Path prev_path = Path(j[1]["previous_path_x"], j[1]["previous_path_y"]);
@@ -93,7 +85,7 @@ int main() {
           auto sensor_fusion = j[1]["sensor_fusion"];
           std::vector<Vehicle> sur_vehicles = sensor_fusion_to_vehicles(sensor_fusion);
 
-          Path plan_path = planner.planPath(cur_state, prev_path, prev_point, sur_vehicles);
+          Path plan_path = planner.planPath(ego, prev_path, prev_point, sur_vehicles);
 
           nlohmann::json msgJson;
           msgJson["next_x"] = plan_path.m_x;

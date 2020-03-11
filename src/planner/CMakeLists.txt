@@ -9,6 +9,7 @@ add_library(${NAME}
 set(LIBRARIES
     types
     spline
+    state_machine
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})

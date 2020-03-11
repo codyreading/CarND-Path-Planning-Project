@@ -1,4 +1,7 @@
 #include "planner.hpp"
+#include "utils.hpp"
+
+
 #include "spline.hpp"
 #include "spline_fit.hpp"
 
@@ -14,14 +17,23 @@ Planner::Planner(const int lane,
     m_ds = m_speed * m_dt; // Assuming constant velocity
     m_path_time = m_path_length / m_speed; // Assuming constant velocity
     m_num_path_points = (int)(m_path_time / m_dt);
+
+    /* Initialize path */
+    m_path = Path();
+
+    /* Initialize state machine */
+    int start_lane = 1; //calculateLane(this->trajectory.ds[0], DEFAULT_LANE_SPACING, DEFAULT_LANE_INSIDE_OFFSET);
+    int finish_lane = start_lane;
+    State initial_state = State(LongitudinalState::ACCELERATE, LateralState::STAY_IN_LANE, start_lane, finish_lane);
+    m_state_machine = StateMachine(initial_state);
 }
 
 Planner::~Planner()
 {
 }
 
-Path Planner::planPath(const State& cur_state,
-                       const Path& prev_path,
+Path Planner::planPath(const Vehicle& ego,
+                       Path& prev_path,
                        const FrenetPoint& prev_point,
                        const std::vector<Vehicle>& vehicles)
 
@@ -31,8 +43,14 @@ Path Planner::planPath(const State& cur_state,
      *   sequentially every .02 seconds
      */
 
-    /* Prediction */
+    /* Remove points consumed by simulator*/
+    int points_consumed = m_path.getSize() - prev_path.getSize();
+    if (prev_path.getSize() > 0)
+    {
+        m_path.removeFirstPoints(points_consumed);
+    }
 
+    /* Prediction */
     std::vector<Vehicle> predict_vehicles = predictVehicles(vehicles);
 
     // /* Behavior Planning */
@@ -73,7 +91,7 @@ void Planner::planBehavior(bool car_ahead, bool car_left, bool car_right)
 {
 }
 
-Path Planner::generateTrajectory(const State& cur_state)
+Path Planner::generateTrajectory(const Vehicle& ego)
 {
     Path path;
     return path;
