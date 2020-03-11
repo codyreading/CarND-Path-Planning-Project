@@ -6,10 +6,11 @@ add_library(${NAME}
 )
 
 # Link libraries
-#set(LIBRARIES
-#)
+set(LIBRARIES
+    utils
+)
 
-#target_link_libraries(${NAME} ${LIBRARIES})
+target_link_libraries(${NAME} ${LIBRARIES})
 
 target_include_directories(${NAME} PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/src"

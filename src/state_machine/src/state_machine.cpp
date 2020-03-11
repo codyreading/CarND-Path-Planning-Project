@@ -1,5 +1,6 @@
 #include <iostream>
 #include "state_machine.hpp"
+#include "utils.hpp"
 
 State::State()
 {
@@ -128,7 +129,17 @@ std::vector<State> StateMachine::nextPossibleStates()
                                   this->current_state.current_lane,
                                   this->current_state.current_lane));
   }
-  return future_states;
+
+  std::vector<State> possible_states;
+  for (const State &future_state : future_states)
+  {
+    if (!isLaneValid(future_state.current_lane) || !isLaneValid(future_state.future_lane))
+    {
+      continue;
+    }
+    possible_states.push_back(future_state);
+  }
+  return possible_states;
 }
 
 StateMachine::~StateMachine() {}

@@ -22,7 +22,7 @@ private:
     StateMachine m_state_machine;
 
     std::vector<Vehicle> predictVehicles(const std::vector<Vehicle>& vehicles);
-    void planBehavior(bool car_ahead, bool car_left, bool car_right);
+    std::vector<State> getNextStates(Vehicle& ego);
     Path generateTrajectory(const Vehicle& ego);
 
 public:

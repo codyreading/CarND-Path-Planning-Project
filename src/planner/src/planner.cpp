@@ -53,6 +53,9 @@ Path Planner::planPath(const Vehicle& ego,
     /* Prediction */
     std::vector<Vehicle> predict_vehicles = predictVehicles(vehicles);
 
+    /* Get next possible states */
+    std::vector<State> next_states = m_state_machine.nextPossibleStates();
+
     // /* Behavior Planning */
     // //planBehavior(car_ahead, car_left, car_right)
 
@@ -87,9 +90,6 @@ std::vector<Vehicle> Planner::predictVehicles(const std::vector<Vehicle>& vehicl
 }
 
 
-void Planner::planBehavior(bool car_ahead, bool car_left, bool car_right)
-{
-}
 
 Path Planner::generateTrajectory(const Vehicle& ego)
 {
