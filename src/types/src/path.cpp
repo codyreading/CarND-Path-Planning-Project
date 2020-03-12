@@ -24,6 +24,22 @@ int Path::size()
     return m_x.size();
 }
 
+double Path::averageSpeed(double point_interval)
+{
+    int pts_count = size();
+    if (pts_count < 2)
+    {
+        return 0.0;
+    }
+
+    double vel_sum = 0.0;
+    for (int i = 0; i < pts_count; ++i)
+    {
+        vel_sum += m_s_vel[i];
+    }
+    return vel_sum / pts_count;
+}
+
 void Path::add(double x, double y,
                double s, double s_vel, double s_acc, double s_jerk,
                double d, double d_vel, double d_acc, double d_jerk,

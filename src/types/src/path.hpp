@@ -13,6 +13,14 @@ public:
     int size();
 
     /**
+     * Calculates the average squared acceleration, also known as the jerk, over all points.
+     *
+     * @param point_interval the interval in seconds between two consecutive points
+     * @return the average longitudinal speed across all points in the trajectory
+     */
+    double averageSpeed(double point_interval);
+
+    /**
     * Removes the first n waypoints in the trajectory
     */
     void removeFirstPoints(int numPoints);

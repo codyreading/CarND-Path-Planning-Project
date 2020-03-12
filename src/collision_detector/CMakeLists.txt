@@ -1,17 +1,12 @@
-set (NAME planner)
+set (NAME collision_detector)
 
 add_library(${NAME}
-    src/planner.hpp
-    src/planner.cpp
+    src/collision_detector.hpp
+    src/collision_detector.cpp
 )
 
 # Link libraries
 set(LIBRARIES
-    types
-    spline
-    state_machine
-    path
-    cost_functions
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})
