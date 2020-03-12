@@ -18,6 +18,6 @@ enum PathValidationStatus
 };
 
 
-PathValidationStatus path_validate(const Vehicle &v, std::vector<Vehicle> others, const State &state, const Path &path, int from_point);
+PathValidationStatus validate_path(const Vehicle &v, std::vector<Vehicle> others, const State &state, Path &path, int from_point);
 
 #endif

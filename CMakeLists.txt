@@ -28,6 +28,8 @@ add_subdirectory(src/planner)
 add_subdirectory(src/json)
 add_subdirectory(src/state_machine)
 add_subdirectory(src/path)
+add_subdirectory(src/collision_detector)
+add_subdirectory(src/cost_functions)
 
 include_directories(src/Eigen-3.3)
 
@@ -46,7 +48,7 @@ set(LIBRARIES
     planner
     json
     state_machine
-    path_generator
+    path
     collision_detector
     cost_functions
 )

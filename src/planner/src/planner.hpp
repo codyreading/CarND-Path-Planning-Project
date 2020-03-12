@@ -21,13 +21,14 @@ private:
     double m_path_time;
     int m_num_path_points;
     int m_current_timestep;
+    int m_lock_timestep;
 
     Path m_path;
     StateMachine m_state_machine;
     PathGenerator m_path_generator;
 
+    void updateState(State new_state);
     std::vector<Vehicle> predictVehicles(const std::vector<Vehicle>& vehicles);
-    std::vector<State> getNextStates(Vehicle& ego);
     Path generateTrajectory(const Vehicle& ego);
 
 public:

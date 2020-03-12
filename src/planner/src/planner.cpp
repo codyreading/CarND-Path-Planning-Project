@@ -19,6 +19,7 @@ Planner::Planner(const int lane,
     m_path_time = m_path_length / m_speed; // Assuming constant velocity
     m_num_path_points = (int)(m_path_time / m_dt);
     m_current_timestep = 0;
+    m_lock_timestep = 0;
 
     /* Initialize path */
     m_path = Path();
@@ -49,6 +50,11 @@ Path Planner::planPath(const Vehicle& ego,
      *   sequentially every .02 seconds
      */
 
+    const double original_cost = 10000000000;
+    double lowest_cost = original_cost;
+    Path chosen_path;
+    State chosen_state;
+
     /* Remove points consumed by simulator*/
     int points_consumed = m_path.size() - prev_path.size();
     m_current_timestep += points_consumed;
@@ -61,7 +67,21 @@ Path Planner::planPath(const Vehicle& ego,
     /* std::vector<Vehicle> predict_vehicles = predictVehicles(vehicles); */
 
     /* Get next possible states */
-    std::vector<State> next_states = m_state_machine.nextPossibleStates();
+    State current_state = m_state_machine.getCurrentState();
+    std::vector<State> next_states;
+    if (m_current_timestep < m_lock_timestep)
+    {
+        std::cout << "*** UPDATES FROZEN RETURNING CURRENT STATE: "
+                  << m_current_timestep << " < " << m_lock_timestep
+                  << std::endl;
+        next_states = {current_state};
+    }
+    else
+    {
+        next_states = m_state_machine.nextPossibleStates();
+    }
+
+    std::cout << "States: " << next_states.size() << std::endl;
 
     /* Generate paths */
     int from_point = m_current_timestep == 0 ? 0 : 10;
@@ -69,14 +89,14 @@ Path Planner::planPath(const Vehicle& ego,
     {
         std::vector<Path> paths = m_path_generator.generatePaths(state, ego, m_path, from_point, 1);
 
-        for (const Path &path : paths)
+        for (Path &path : paths)
         {
             PathValidationStatus path_status = validate_path(ego, vehicles, state, path, 0);
 
             if (path_status != PathValidationStatus::VALID)
             {
-                cout << "*** IGNORING STATE - PATH VALIDATION STATUS =  for state (" << state.s_state << ", " << state.d_state << ") = "
-                     << path_status << endl;
+                std::cout << "*** IGNORING STATE - PATH VALIDATION STATUS =  for state (" << state.s_state << ", " << state.d_state << ") = "
+                          << path_status << std::endl;
                 continue;
             }
 
@@ -123,55 +143,64 @@ Path Planner::planPath(const Vehicle& ego,
                                 + collision_time_cost + dist_car_future_lane_cost
                                 + lon_dist_adjacent_car_cost;
 
-            cout << left << "(" << state.s_state << "," << state.d_state << ")"
-                 << ":" << state.current_lane << "->" << state.future_lane << endl;
-            cout << left << setw(14) << setfill(' ') << "   Ego Lane: " << ego.lane;
-            cout << left << "| " << setw(13) << setfill(' ') << lane_center_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << cost_speed;
-            cout << left << "| " << setw(13) << setfill(' ') << avg_speed_lane_diff_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << cost_dist_cars;
-            cout << left << "| " << setw(13) << setfill(' ') << change_lane_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << dist_car_future_lane_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << lon_dist_adjacent_car_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << future_dist_to_goal_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << speed_diff_to_car_ahead_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << collision_time_cost;
-            cout << left << "| " << setw(13) << setfill(' ') << final_cost;
-            cout << endl;
+            std::cout << left << "(" << state.s_state << "," << state.d_state << ")"
+                      << ":" << state.current_lane << "->" << state.future_lane << std::endl;
+            std::cout << left << setw(14) << setfill(' ') << "   Ego Lane: " << ego.m_lane;
+            std::cout << left << "| " << setw(13) << setfill(' ') << lane_center_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << cost_speed;
+            std::cout << left << "| " << setw(13) << setfill(' ') << avg_speed_lane_diff_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << cost_dist_cars;
+            std::cout << left << "| " << setw(13) << setfill(' ') << change_lane_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << dist_car_future_lane_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << lon_dist_adjacent_car_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << future_dist_to_goal_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << speed_diff_to_car_ahead_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << collision_time_cost;
+            std::cout << left << "| " << setw(13) << setfill(' ') << final_cost;
+            std::cout << std::endl;
 
             if (final_cost < lowest_cost)
             {
                 lowest_cost = final_cost;
-                chosen_trajectory = path;
+                chosen_path = path;
                 chosen_state = state;
             }
         }
     }
-    cout << "*  - Chosen state: (" << chosen_state.s_state
-         << "," << chosen_state.d_state << ")"
-         << " lane transition: " << chosen_state.current_lane << " -> " << chosen_state.future_lane
-         << endl;
+    std::cout << "*  - Chosen state: (" << chosen_state.s_state
+              << "," << chosen_state.d_state << ")"
+              << " lane transition: " << chosen_state.current_lane << " -> " << chosen_state.future_lane
+              << std::endl;
 
-    // /* Behavior Planning */
+    if (lowest_cost < original_cost)
+    {
+        m_path = chosen_path;
+    }
+    else
+    {
+        std::cout << "!!!!!! No lowest cost found - using current trajectory for now !!!!!!" << std::endl;
+        chosen_path = m_path;
+    }
 
-    // /* Trajectory Generation */
-    // Path plan_path = generateTrajectory(cur_state);
+    updateState(chosen_state);
+    return m_path;
+}
 
-    /* Fit spline to points */
-    // tk::spline spline_x, spline_y;
-    // std::tie(spline_x, spline_y) = fitSpline(cur_state.s, cur_state.d, m_waypoints.s, m_waypoints.x, m_waypoints.y, m_path_length);
+void Planner::updateState(State new_state)
+{
 
-    Path plan_path;
-    // plan_path.x = {};
-    // plan_path.y = {};
-    //  Sample from spline
-    // for (int i = 0; i < m_num_path_points; ++i)
-    // {
-    //     double path_s = cur_state.s + i * m_ds;
-    //     plan_path.x.push_back(spline_x(path_s));
-    //     plan_path.y.push_back(spline_y(path_s));
-    // }
-    return plan_path;
+    const State &current_state = m_state_machine.getCurrentState();
+    // std::cout << "********** current state D = " << current_state.d_state << std::endl;
+    // std::cout << "********** new state D = " << new_state.d_state << std::endl;
+    if ((current_state.d_state == LateralState::PREPARE_CHANGE_LANE_LEFT &&
+            new_state.d_state == LateralState::CHANGE_LANE_LEFT) ||
+            (current_state.d_state == LateralState::PREPARE_CHANGE_LANE_RIGHT &&
+             new_state.d_state == LateralState::CHANGE_LANE_RIGHT))
+    {
+        m_lock_timestep = m_current_timestep + 25;
+        std::cout << "*** FREEZING state updates for " << m_lock_timestep << "timesteps";
+    }
+    m_state_machine.updateState(new_state, m_lock_timestep);
 }
 
 std::vector<Vehicle> Planner::predictVehicles(const std::vector<Vehicle>& vehicles)

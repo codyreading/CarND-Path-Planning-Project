@@ -4,7 +4,7 @@
 
 
 
-PathValidationStatus path_validate(const Vehicle &ego,
+PathValidationStatus validate_path(const Vehicle &ego,
                                    std::vector<Vehicle> others,
                                    const State &state,
                                    Path &path,

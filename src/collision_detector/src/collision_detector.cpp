@@ -14,20 +14,20 @@ Collision::Collision(const Vehicle &v, const bool willCollide,
 }
 
 
-Collision predictCollision(const Path &path, const Vehicle &vehicle, double timestep)
+Collision predictCollision(Path &path, const Vehicle &vehicle, double timestep)
 {
     Waypoints &waypoints = Waypoints::getInstance();
 
     // TODO we should store vehicle predicted coordinates somewhere so that it is reused
     for (int i = 0; i < path.size(); ++i)
     {
-        double ref_x = trajectory.m_x[i];
-        double ref_y = trajectory.m_y[i];
+        double ref_x = path.m_x[i];
+        double ref_y = path.m_y[i];
 
-        double v_predcited_x = vehicle.x + vehicle.vx * timestep * i;
-        double v_predcited_y = vehicle.y + vehicle.vy * timestep * i;
+        double v_predcited_x = vehicle.m_x + vehicle.m_vx * timestep * i;
+        double v_predcited_y = vehicle.m_y + vehicle.m_vy * timestep * i;
 
-        std::vector<double> frenet = waypoints.toFrenet(v_predcited_x, v_predcited_y, vehicle.theta);
+        std::vector<double> frenet = waypoints.toFrenet(v_predcited_x, v_predcited_y, vehicle.m_theta);
 
         // TODO check lane here
         int ego_lane = calculateLane(path.m_d[i], DEFAULT_LANE_SPACING, DEFAULT_LANE_INSIDE_OFFSET);
@@ -54,7 +54,3 @@ Collision predictCollision(const Path &path, const Vehicle &vehicle, double time
     }
     return Collision(vehicle, false, 0.0, 0.0, 0.0);
 }
-
-CollisionDetector::~CollisionDetector() {}
-
-Collision::~Collision() {}

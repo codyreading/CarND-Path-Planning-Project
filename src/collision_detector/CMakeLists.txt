@@ -7,6 +7,7 @@ add_library(${NAME}
 
 # Link libraries
 set(LIBRARIES
+    types
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})

@@ -4,7 +4,7 @@
 #include "vehicle.hpp"
 #include "path.hpp"
 
-class Collision
+struct Collision
 {
 public:
     const Vehicle& v;
@@ -15,7 +15,6 @@ public:
 
     Collision(const Vehicle& v, const bool willCollide,
               const double collision_point_x, const double collision_point_y, const double collision_timestep);
-    ~Collision();
 };
 
 
@@ -26,6 +25,6 @@ public:
  * @param timestep the timestep unit (e.g. 0.5s, 1s, etc.) between successive points
  *
  */
-Collision predictCollision(const Vehicle &vehicle, double timestep);
+Collision predictCollision(Path &path, const Vehicle &vehicle, double timestep);
 
 #endif

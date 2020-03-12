@@ -9,7 +9,7 @@
 #include "collision_detector.hpp"
 #include "utils.hpp"
 
-double speedCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double speedCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                          const State &state, const double &weight)
 {
     double avg_speed = path.averageSpeed(CONTROLLER_UPDATE_RATE_SECONDS);
@@ -26,10 +26,10 @@ double speedCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others,
     return weight * (1 - exp(-abs(diff)));
 }
 
-double centerOfLaneDistCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double centerOfLaneDistCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                                     const State &state, const double &weight)
 {
-    double final_d = path.ds[path.ds.size() - 1];
+    double final_d = path.m_d[path.m_d.size() - 1];
     int lane = calculateLane(final_d, DEFAULT_LANE_SPACING, DEFAULT_LANE_INSIDE_OFFSET);
     int lane_center = getLaneCenterFrenet(lane);
 
@@ -38,7 +38,7 @@ double centerOfLaneDistCostFunction(const Vehicle &ego, const std::vector<Vehicl
     return weight * (1 - exp(-abs(diff)));
 }
 
-double laneChangeCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double laneChangeCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                               const State &state, const double &weight)
 {
     if (state.current_lane == state.future_lane)
@@ -62,7 +62,7 @@ double laneChangeCostFunction(const Vehicle &ego, const std::vector<Vehicle> &ot
  * @param weight
  * @return double
  */
-double distanceToClosestCarAheadCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double distanceToClosestCarAheadCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
         const State &state, const double &weight)
 {
     // We are switching lanes and this is not a cancellable operation
@@ -72,7 +72,7 @@ double distanceToClosestCarAheadCostFunction(const Vehicle &ego, const std::vect
     // }
 
     // Find closest car ahead and get distance
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return weight;
     }
@@ -87,7 +87,7 @@ double distanceToClosestCarAheadCostFunction(const Vehicle &ego, const std::vect
     double min_distance = VEHICLE_DISTANCE_THRESHOLD_METERS;
     for (const Vehicle &v : ahead)
     {
-        double dist = distance(ego.x, ego.y, v.x, v.y);
+        double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
         if (dist < min_distance)
         {
             min_distance = dist;
@@ -99,11 +99,11 @@ double distanceToClosestCarAheadCostFunction(const Vehicle &ego, const std::vect
     return weight * (1 - exp(-abs(diff)));
 }
 
-double longitudinalDistanceToClosestAdjacentCarFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double longitudinalDistanceToClosestAdjacentCarFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
         const State &state, const double &weight)
 {
     // This cost function only applies to lane changes
-    if (state.current_lane == state.future_lane && state.current_lane == ego.lane)
+    if (state.current_lane == state.future_lane && state.current_lane == ego.m_lane)
     {
         return 0.0;
     }
@@ -111,10 +111,10 @@ double longitudinalDistanceToClosestAdjacentCarFunction(const Vehicle &ego, cons
     double min_distance = VEHICLE_DISTANCE_THRESHOLD_METERS;
     for (const Vehicle &v : others)
     {
-        if (v.isInLane && v.lane == state.future_lane)
+        if (v.m_isInLane && v.m_lane == state.future_lane)
         {
             // Other car is on different lane
-            double dist = distance(ego.x, ego.y, v.x, v.y);
+            double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
             if (dist < min_distance)
             {
                 min_distance = dist;
@@ -128,7 +128,7 @@ double longitudinalDistanceToClosestAdjacentCarFunction(const Vehicle &ego, cons
     return weight * (1 - exp(-abs(diff)));
 }
 
-double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
         const State &state, const double &weight)
 {
 
@@ -140,7 +140,7 @@ double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const
     }
 
     // Find closest car ahead and get distance
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return weight;
     }
@@ -149,7 +149,7 @@ double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const
     double min_distance = LANE_CHANGE_VEHICLE_AHEAD_DISTANCE_THRESHOLD_METERS;
     for (const Vehicle &v : ahead)
     {
-        double dist = distance(ego.x, ego.y, v.x, v.y);
+        double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
         if (dist < min_distance)
         {
             min_distance = dist;
@@ -162,7 +162,7 @@ double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const
     min_distance = LANE_CHANGE_VEHICLE_BEHIND_DISTANCE_THRESHOLD_METERS;
     for (const Vehicle &v : behind)
     {
-        double dist = distance(ego.x, ego.y, v.x, v.y);
+        double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
         if (dist < min_distance)
         {
             min_distance = dist;
@@ -186,7 +186,7 @@ double distanceToClosestCarAheadFutureLaneCostFunction(const Vehicle &ego, const
  * @param weight
  * @return double
  */
-double averageLaneSpeedDiffCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double averageLaneSpeedDiffCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                                         const State &state, const double &weight)
 {
 
@@ -197,7 +197,7 @@ double averageLaneSpeedDiffCostFunction(const Vehicle &ego, const std::vector<Ve
     }
 
     // Not in lane so doesn't count
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return 0.0;
     }
@@ -214,7 +214,7 @@ double averageLaneSpeedDiffCostFunction(const Vehicle &ego, const std::vector<Ve
     int count = 0;
     for (const Vehicle &v : ahead)
     {
-        double dist = distance(ego.x, ego.y, v.x, v.y);
+        double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
         // Only look a bit ahead
         if (dist <= VEHICLE_DISTANCE_THRESHOLD_METERS * 1.5)
         {
@@ -244,11 +244,11 @@ double averageLaneSpeedDiffCostFunction(const Vehicle &ego, const std::vector<Ve
     return weight * (1 - exp(-abs(diff)));
 }
 
-double speedDifferenceWithClosestCarAheadCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double speedDifferenceWithClosestCarAheadCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
         const State &state, const double &weight)
 {
     // TODO need to review this
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return 0.0;
     }
@@ -264,9 +264,9 @@ double speedDifferenceWithClosestCarAheadCostFunction(const Vehicle &ego, const 
     for (const Vehicle &v : ahead)
     {
         // Other car must be ahead in the same lane
-        if (v.s > ego.s)
+        if (v.m_s > ego.m_s)
         {
-            double dist = distance(ego.x, ego.y, v.x, v.y);
+            double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
             if (dist < min_distance)
             {
                 min_distance = dist;
@@ -300,11 +300,11 @@ double speedDifferenceWithClosestCarAheadCostFunction(const Vehicle &ego, const 
 }
 
 // TODO Compute the average speed of lanes
-double lanesAverageForwardSpeedCarsAhead(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double lanesAverageForwardSpeedCarsAhead(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
         const State &state, const double &weight)
 {
     // TODO need to review this
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return weight;
     }
@@ -314,9 +314,9 @@ double lanesAverageForwardSpeedCarsAhead(const Vehicle &ego, const std::vector<V
     for (const Vehicle &v : others)
     {
         // Other car must be ahead in the same lane
-        if (v.isInLane && v.lane == state.future_lane && v.s > ego.s)
+        if (v.m_isInLane && v.m_lane == state.future_lane && v.m_s > ego.m_s)
         {
-            double dist = distance(ego.x, ego.y, v.x, v.y);
+            double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
             if (dist < min_distance)
             {
                 min_distance = dist;
@@ -341,11 +341,11 @@ double lanesAverageForwardSpeedCarsAhead(const Vehicle &ego, const std::vector<V
     return weight * (1 - exp(-abs(diff)));
 }
 
-double collisionTimeCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double collisionTimeCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                                  const State &state, const double &weight)
 {
     // TODO need to review this
-    if (!ego.isInLane)
+    if (!ego.m_isInLane)
     {
         return weight;
     }
@@ -354,9 +354,9 @@ double collisionTimeCostFunction(const Vehicle &ego, const std::vector<Vehicle> 
     Vehicle closest_vehicle;
     for (const Vehicle &v : others)
     {
-        if (v.isInLane && (v.lane == state.current_lane || v.lane == state.future_lane) && v.s >= ego.s)
+        if (v.m_isInLane && (v.m_lane == state.current_lane || v.m_lane == state.future_lane) && v.m_s >= ego.m_s)
         {
-            double dist = distance(ego.x, ego.y, v.x, v.y);
+            double dist = distance(ego.m_x, ego.m_y, v.m_x, v.m_y);
             if (dist < min_distance)
             {
                 min_distance = dist;
@@ -409,11 +409,11 @@ double collisionTimeCostFunction(const Vehicle &ego, const std::vector<Vehicle> 
  * @param weight
  * @return double the distance to the goal at the end of our path
  */
-double futureDistanceToGoalCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, const Path &path,
+double futureDistanceToGoalCostFunction(const Vehicle &ego, const std::vector<Vehicle> &others, Path &path,
                                         const State &state, const double &weight)
 {
     int traj_size = path.size();
-    double diff = MAX_TRACK_S - path.ss[traj_size - 1];
+    double diff = MAX_TRACK_S - path.m_s[traj_size - 1];
 
     // cout << "** DISTANCE TO GOAL = " << diff << endl;
     return weight * (1 - exp(-abs(diff / MAX_TRACK_S)));

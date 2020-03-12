@@ -8,6 +8,7 @@ add_library(${NAME}
 # Link libraries
 set(LIBRARIES
     collision_detector
+    state_machine
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})
