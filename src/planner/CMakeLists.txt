@@ -10,6 +10,7 @@ set(LIBRARIES
     types
     spline
     state_machine
+    path_generator
 )
 
 target_link_libraries(${NAME} ${LIBRARIES})

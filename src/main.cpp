@@ -4,8 +4,9 @@
 #include <string>
 #include <vector>
 
-// #include "third-party/Eigen-3.3/Eigen/Core"
-// #include "third-party/Eigen-3.3/Eigen/QR"
+#include "Eigen-3.3/Eigen/Core"
+#include "Eigen-3.3/Eigen/Dense"
+#include "Eigen-3.3/Eigen/QR"
 #include "json.hpp"
 
 #include "path.hpp"

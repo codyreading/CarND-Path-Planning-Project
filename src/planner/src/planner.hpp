@@ -2,6 +2,8 @@
 #define PLANNER_HPP
 
 #include <tuple>
+
+#include "path_generator.hpp"
 #include "state_machine.hpp"
 #include "path.hpp"
 #include "frenet_point.hpp"
@@ -18,8 +20,11 @@ private:
     double m_ds;
     double m_path_time;
     int m_num_path_points;
+    int m_current_timestep;
+
     Path m_path;
     StateMachine m_state_machine;
+    PathGenerator m_path_generator;
 
     std::vector<Vehicle> predictVehicles(const std::vector<Vehicle>& vehicles);
     std::vector<State> getNextStates(Vehicle& ego);

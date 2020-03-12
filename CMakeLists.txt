@@ -27,6 +27,9 @@ add_subdirectory(src/types)
 add_subdirectory(src/planner)
 add_subdirectory(src/json)
 add_subdirectory(src/state_machine)
+add_subdirectory(src/path_generator)
+
+include_directories(src/Eigen-3.3)
 
 # Add excutable
 add_executable(path_planning ${SOURCES})
@@ -43,6 +46,7 @@ set(LIBRARIES
     planner
     json
     state_machine
+    path_generator
 )
 
 target_link_libraries(path_planning ${LIBRARIES})
